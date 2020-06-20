@@ -124,6 +124,14 @@ class JudgmentAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
                 if not next_patch:
                     return self.render_json_response(context)
 
+                docs_ranklist = CALFunctions.get_doc_score(self.request.user.current_task.uuid)
+                ret = {}
+                for line in docs_ranklist.split(','):
+                    if len(line) == 0:
+                        continue
+                    doc_id, score = line.split(' ')
+                    ret[doc_id] = score
+
                 doc_ids_hack = []
                 for doc_id in next_patch:
                     doc = {'doc_id': doc_id}
@@ -137,6 +145,14 @@ class JudgmentAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
                 else:
                     documents = DocEngine.get_documents_with_snippet(doc_ids_hack,
                                                         self.request.user.current_task.topic.seed_query)
+
+                for i in range(len(documents)):
+                    id = documents[i]['doc_id']
+                    if id in ret:
+                        documents[i]['score'] = ret[id]
+                    else:
+                        documents[i]['score'] = "0.5"
+
                 context[u"next_docs"] = documents
             except TimeoutError:
                 error_dict = {u"message": u"Timeout error. "

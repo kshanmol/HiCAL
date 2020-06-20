@@ -137,3 +137,24 @@ def get_documents(session, num_docs, query):
         return content['docs']
     else:
         raise CALServerError(resp['status'])
+
+def get_doc_score(session):
+    """
+    :param session: current session
+    :param num_docs: number of documents to return
+    :return: return JSON list of documents_ids to judge
+    """
+    h = httplib2.Http()
+    url = "http://{}:{}/CAL/get_ranklist?"
+
+    parameters = {'session_id': str(session)}
+    parameters = urllib.parse.urlencode(parameters)
+    resp, content = h.request(url.format(CAL_SERVER_IP,
+                                         CAL_SERVER_PORT) + parameters,
+                              method="GET")
+
+    if resp and resp['status'] == '200':
+        content = json.loads(content.decode('utf-8'))
+        return content['ranklist']
+    else:
+        raise CALServerError(resp['status'])

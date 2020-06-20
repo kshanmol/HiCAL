@@ -74,6 +74,17 @@ class DocAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
             if not docs_ids_to_judge:
                 return self.render_json_response([])
 
+            #changing for personal
+            docs_ranklist = CALFunctions.get_doc_score(str(session))
+
+            ret = {}
+            for line in docs_ranklist.split(','):
+                if len(line) == 0:
+                    continue
+                doc_id, score = line.split(' ')
+                ret[doc_id] = score
+
+
             doc_ids_hack = []
             for doc_id in docs_ids_to_judge:
                 doc = {'doc_id': doc_id}
@@ -87,6 +98,14 @@ class DocAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
             else:
                 documents = DocEngine.get_documents_with_snippet(doc_ids_hack,
                                                     self.request.user.current_task.topic.seed_query)
+
+
+            for i in range(len(documents)):
+                id = documents[i]['doc_id']
+                if id in ret:
+                    documents[i]['score'] = ret[id]
+                else:
+                    documents[i]['score'] = "1"
 
             return self.render_json_response(documents)
         except TimeoutError:

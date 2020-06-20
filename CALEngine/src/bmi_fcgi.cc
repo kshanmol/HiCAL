@@ -287,10 +287,16 @@ void get_ranklist(const FCGX_Request & request, const vector<pair<string, string
 
     vector<pair<string, float>> ranklist = SESSIONS[session_id]->get_ranklist();
     string ranklist_str = "";
-    for(auto item: ranklist){
-        ranklist_str += item.first + " " + to_string(item.second) + "\n";
+    for(int i=0; i < ranklist.size(); i++){
+      ranklist_str += ranklist[i].first + " " + to_string(ranklist[i].second);
+      if(i!=(ranklist.size()-1)){
+        ranklist_str += ",";
+      }
     }
-    write_response(request, 200, "text/plain", ranklist_str);
+
+    //text to json
+    string json_ret = "{\"ranklist\": \"" + ranklist_str + "\"}";
+    write_response(request, 200, "application/json", json_ret);
 }
 
 // Handler for /log
