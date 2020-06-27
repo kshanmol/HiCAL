@@ -1,4 +1,6 @@
 #include <fstream>
+#include <sstream>
+#include <string>
 #include <thread>
 #include <fcgio.h>
 #include "utils/simple-cmd-line-helper.h"
@@ -13,6 +15,7 @@ using namespace std;
 unordered_map<string, unique_ptr<BMI>> SESSIONS;
 unique_ptr<Dataset> documents = nullptr;
 unique_ptr<ParagraphDataset> paragraphs = nullptr;
+unordered_map<uint32_t, string> id_tokens;
 
 // Get the uri without following and preceding slashes
 string parse_action_from_uri(string uri){
@@ -206,7 +209,7 @@ string stringify_top_terms(vector<pair<uint32_t, float>> top_terms) {
     for(auto top_term: top_terms){
         if(top_terms_json.length() > 1)
             top_terms_json.push_back(',');
-        top_terms_json += "\"" + to_string(top_term.first) + "\"" + ":" + to_string(top_term.second);
+        top_terms_json += "\"" + id_tokens[top_term.first] + "\"" + ":" + to_string(top_term.second);
     }
     top_terms_json.push_back('}');
     return top_terms_json;   
@@ -313,47 +316,6 @@ void get_ranklist(const FCGX_Request & request, const vector<pair<string, string
     //text to json
     string json_ret = "{\"ranklist\": \"" + ranklist_str + "\"}";
     write_response(request, 200, "application/json", json_ret);
-}
-
-// Handler for /top_terms
-void get_top_terms(const FCGX_Request & request, const vector<pair<string, string>> &params){
-    string session_id;
-    string doc_id = "";
-
-    for(auto kv: params){
-        if(kv.first == "session_id"){
-            session_id = kv.second;
-        } else if(kv.first == "doc_id"){
-            doc_id = kv.second;
-        }    
-    }
-
-    if(session_id.size() == 0){
-        write_response(request, 400, "application/json", "{\"error\": \"Non empty session_id required\"}");
-    }
-
-    if(SESSIONS.find(session_id) == SESSIONS.end()){
-        write_response(request, 404, "application/json", "{\"error\": \"session not found\"}");
-        return;
-    }
-
-    if (doc_id.empty()){
-        write_response(request, 400, "application/json", "{\"error\": \"Non empty doc_id required for top_terms\"}");
-    }
-
-    vector<pair<uint32_t, float>> top_terms = SESSIONS[session_id]->get_top_terms(doc_id, 10);
-    
-    string top_terms_str = "";
-    for(int i=0; i < top_terms.size(); i++){
-      top_terms_str += to_string(top_terms[i].first) + " " + to_string(top_terms[i].second);
-      if(i!=(top_terms.size()-1)){
-        top_terms_str += ",";
-      }
-    }
-
-    //text to json
-    string json_ret = "{\"top_terms\": \"" + top_terms_str + "\"}";
-    write_response(request, 200, "application/json", json_ret);    
 }
 
 // Handler for /log
@@ -485,10 +447,6 @@ void process_request(const FCGX_Request & request) {
         if(method == "GET"){
             get_ranklist(request, params);
         }
-    }else if(action == "get_top_terms"){
-        if(method == "GET"){
-            get_top_terms(request, params);
-        }
     }else if(action == "delete_session"){
         if(method == "DELETE"){
             delete_session_view(request, params);
@@ -557,6 +515,25 @@ int main(int argc, char **argv){
             cerr<<"Read "<<paragraphs->size()<<" paragraphs"<<endl;
         }
         TIMER_END(paragraph_loader);
+    }
+
+    string id_term_map_path = "/data/id_token_map.txt";
+    if(id_term_map_path.length() > 0){
+        cerr<<"Loading id-tokens map on memory"<<endl;
+        {
+            ifstream id_map_file;
+            id_map_file.open(id_term_map_path);
+            string line;
+            while (getline(id_map_file, line)){
+                istringstream iss(line);
+                uint32_t token_id;
+                string token;
+                if (!(iss >> token_id >> token)) { break; } // error
+                id_tokens[token_id] = token;
+            }
+            id_map_file.close();
+            cerr<<"Read "<< id_tokens.size() << " id-tokens entries"<<endl;
+        }
     }
 
     FCGX_Init();

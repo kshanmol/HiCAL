@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cmath>
+#include <fstream>
 
 #include <archive.h>
 #include <archive_entry.h>
@@ -166,6 +167,8 @@ int main(int argc, char **argv){
     }
 
     unique_ptr<SfSparseVector> spv;
+    unordered_map<uint32_t, string> id_tokens;
+
     num_docs = 0;
     while((spv = fp_1->next()) != nullptr){
         vector<FeatureValuePair> features;
@@ -175,6 +178,7 @@ int main(int argc, char **argv){
                 f.id_ = new_ids[f.id_-1] + 1;
                 if(f.id_ - 1 < dictionary.size() && dictionary[f.id_-1].second > 1){
                     features.push_back({f.id_, (float) ((1 + log(f.value_)) * idf[f.id_])});
+                    id_tokens[f.id_] = dictionary[f.id_-1].first;
                     sum += features.back().value_ * features.back().value_;
                 }
             }
@@ -195,6 +199,15 @@ int main(int argc, char **argv){
     }
     cerr<<endl;
     fw_2->finish();
+
+    // Write the token ID to actual token map
+    ofstream id_map_file;
+    id_map_file.open("/data/id_token_map.txt");
+    cerr << "Writing " << id_tokens.size() << " tokens" << endl;
+    for (auto it : id_tokens) {
+        id_map_file << it.first << " " << it.second << endl;
+    }
+    id_map_file.close();
 
     archive_read_close(a);
     archive_read_free(a);
