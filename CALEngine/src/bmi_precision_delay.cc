@@ -17,7 +17,7 @@ BMI_precision_delay::BMI_precision_delay(Seed _seed,
     perform_iteration();
 }
 
-vector<int> BMI_precision_delay::perform_training_iteration(){
+vector<pair<int, float>> BMI_precision_delay::perform_training_iteration(){
     lock_guard<mutex> lock_training(training_mutex);
 
     sync_training_cache();
@@ -44,7 +44,7 @@ void BMI_precision_delay::record_judgment_batch(std::vector<std::pair<std::strin
     int last_rel;
     for(const auto &judgment: _judgments){
         size_t id = documents->get_index(judgment.first);
-        if(judgment_queue.size() > 0 && id == judgment_queue.back()){
+        if(judgment_queue.size() > 0 && id == judgment_queue.back().first){
             judgment_queue.pop_back();
         }
         add_to_training_cache(id, judgment.second);

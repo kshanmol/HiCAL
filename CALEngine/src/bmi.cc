@@ -77,18 +77,19 @@ vector<float> BMI::train(){
     return LRPegasosClassifier(training_iterations).train(positives, negatives, documents->get_dimensionality());
 }
 
-vector<string> BMI::get_doc_to_judge(uint32_t count=1){
+vector<pair<string,float>> BMI::get_doc_to_judge(uint32_t count=1){
     while(true){
         {
             lock_guard<mutex> lock_judgment_list(judgment_list_mutex);
             lock_guard<mutex> lock_judgments(training_cache_mutex);
 
             if(!judgment_queue.empty()){
-                vector<string> ret;
-                for(int i = judgment_queue.size()-1; i>=0 && judgment_queue[i] != -1 && ret.size() < count; i--){
-                    if(!is_judged(judgment_queue[i]))
-                        ret.push_back(get_ranking_dataset()->get_sf_sparse_vector(judgment_queue[i]).doc_id);
-                    else {
+                vector<pair<string, float>> ret;
+                for(int i = judgment_queue.size()-1; i>=0 && judgment_queue[i].first != -1 && ret.size() < count; i--){
+                    if(!is_judged(judgment_queue[i].first)){
+                        string doc_id = get_ranking_dataset()->get_sf_sparse_vector(judgment_queue[i].first).doc_id;
+                        ret.push_back({doc_id, judgment_queue[i].second});
+                    } else {
                         judgment_queue.erase(judgment_queue.begin() + i);
                     }
                 }
@@ -99,10 +100,10 @@ vector<string> BMI::get_doc_to_judge(uint32_t count=1){
     }
 }
 
-void BMI::add_to_judgment_list(const vector<int> &ids){
+void BMI::add_to_judgment_list(const vector<pair<int,float>> &ids){
     lock_guard<mutex> lock(judgment_list_mutex);
     if(ids.size() == 0)
-        judgment_queue = {-1};
+        judgment_queue = {{-1, 0.0}};
     else
         judgment_queue = ids;
 }
@@ -163,7 +164,7 @@ void BMI::sync_training_cache() {
     training_cache.clear();
 }
 
-vector<int> BMI::perform_training_iteration(){
+vector<pair<int,float>> BMI::perform_training_iteration(){
     lock_guard<mutex> lock_training(training_mutex);
 
     sync_training_cache();
@@ -171,8 +172,8 @@ vector<int> BMI::perform_training_iteration(){
     // Training
     TIMER_BEGIN(training);
     auto weights = train();
+    state.weights = weights;
     TIMER_END(training);
-
 
     // Scoring
     TIMER_BEGIN(rescoring);
@@ -191,4 +192,11 @@ std::vector<std::pair<string, float>> BMI::get_ranklist(){
     }
     sort(ret_results.begin(), ret_results.end(), [] (const pair<string, float> &a, const pair<string, float> &b) -> bool {return a.second > b.second;});
     return ret_results;
+}
+
+vector<pair<uint32_t, float>> BMI::get_top_terms(string doc_id, int num_top_terms=10){
+    uint32_t idx = documents->get_index(doc_id);
+    auto w = state.weights;
+    vector< pair<uint32_t, float> > top_terms = documents->top_terms(idx, w, num_top_terms);
+    return top_terms;
 }

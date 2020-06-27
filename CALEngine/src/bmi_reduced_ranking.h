@@ -20,7 +20,7 @@ class BMI_reduced_ranking:public BMI {
                                int st, int end,
                                std::pair<float, int> *top_docs);
 
-    vector<int> subset_rescore(const vector<float> &weights);
+    vector<std::pair<int, float>> subset_rescore(const vector<float> &weights);
 
     public:
     BMI_reduced_ranking(Seed seed,
@@ -31,7 +31,7 @@ class BMI_reduced_ranking:public BMI {
         size_t subset_size,
         size_t refresh_period,
         int training_iterations);
-    std::vector<int> perform_training_iteration();
+    std::vector<std::pair<int, float>> perform_training_iteration();
 };
 
 #endif // BMI_REDUCED_RANKING_H

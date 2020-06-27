@@ -15,7 +15,7 @@ BMI_online_learning::BMI_online_learning(Seed _seed,
 {
     perform_iteration();
 }
-vector<int> BMI_online_learning::perform_training_iteration(){
+vector<pair<int, float>> BMI_online_learning::perform_training_iteration(){
     lock_guard<mutex> lock_training(training_mutex);
 
     {

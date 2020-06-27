@@ -24,7 +24,7 @@ void BMI_para::record_judgment(string doc_id, int judgment){
     record_judgment_batch({{doc_id.substr(0, doc_id.find(".")), judgment}});
 }
 
-vector<int> BMI_para::perform_training_iteration(){
+vector<pair<int, float>> BMI_para::perform_training_iteration(){
     lock_guard<mutex> lock_training(training_mutex);
     sync_training_cache();
 
@@ -50,7 +50,7 @@ std::vector<std::pair<string, float>> BMI_para::get_ranklist(){
                               get_ranking_dataset()->size(), map<int, int>());
 
     for(auto result: results){
-        string para_id = get_ranking_dataset()->get_sf_sparse_vector(result).doc_id;
+        string para_id = get_ranking_dataset()->get_sf_sparse_vector(result.first).doc_id;
         string doc_id = para_id.substr(0, para_id.find('.'));
         if(doc_id_seen.find(doc_id) == doc_id_seen.end()){
             ret_results.push_back({doc_id, 0});

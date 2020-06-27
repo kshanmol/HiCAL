@@ -58,6 +58,17 @@ float Dataset::inner_product(size_t index, const vector<float> &weights) const {
     return score;
 }
 
+vector< pair<uint32_t, float> > Dataset::top_terms(size_t index, const vector<float> &weights, int num_top_terms = 10) const {
+    vector< pair<uint32_t, float> > result;
+    auto &features = get_sf_sparse_vector(index).features_;
+    for(auto &feature: features){
+        result.push_back({feature.id_, weights[feature.id_] * feature.value_});
+    }
+    sort(result.begin(), result.end(), [] (const pair<uint32_t, float> &a, const pair<uint32_t, float> &b) -> bool {return a.second > b.second;});
+    result.resize(num_top_terms);
+    return result;
+}
+
 void Dataset::score_docs_priority_queue(const vector<float> &weights,
                                        int st, int end,
                                        priority_queue<pair<float, int>> &top_docs,
@@ -129,7 +140,7 @@ void ParagraphDataset::score_docs_priority_queue(const vector<float> &weights,
     }
 }
 
-vector<int> Dataset::rescore(const vector<float> &weights, int num_threads, int num_top_docs, const map<int, int> &judgments) {
+vector<pair<int, float>> Dataset::rescore(const vector<float> &weights, int num_threads, int num_top_docs, const map<int, int> &judgments) {
     vector<thread> t;
     mutex top_docs_mutex;
     priority_queue<pair<float, int>> top_docs;
@@ -152,16 +163,16 @@ vector<int> Dataset::rescore(const vector<float> &weights, int num_threads, int 
 
     for(thread &x: t) x.join();
 
-    vector<int> top_docs_list(top_docs.size());
+    vector<pair<int, float>> top_docs_list(top_docs.size());
     int idx = 0;
     while(!top_docs.empty()){
-        top_docs_list[idx++] = (top_docs.top().second);
+        top_docs_list[idx++] = {(top_docs.top().second), (top_docs.top().first)};
         top_docs.pop();
     }
     return top_docs_list;
 }
 
-vector<int> ParagraphDataset::rescore(const vector<float> &weights, int num_threads, int num_top_docs, const map<int, int> &judgments) {
+vector<pair<int, float>> ParagraphDataset::rescore(const vector<float> &weights, int num_threads, int num_top_docs, const map<int, int> &judgments) {
     vector<thread> t;
     mutex top_docs_mutex;
     priority_queue<pair<float, int>> top_docs;
@@ -191,10 +202,10 @@ vector<int> ParagraphDataset::rescore(const vector<float> &weights, int num_thre
 
     for(thread &x: t) x.join();
 
-    vector<int> top_docs_list(top_docs.size());
+    vector<pair<int, float>> top_docs_list(top_docs.size());
     int idx = 0;
     while(!top_docs.empty()){
-        top_docs_list[idx++] = (top_docs.top().second);
+        top_docs_list[idx++] = {(top_docs.top().second), (top_docs.top().first)};
         top_docs.pop();
     }
     return top_docs_list;

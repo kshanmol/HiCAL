@@ -31,7 +31,9 @@ class Dataset {
     Dataset(std::unique_ptr<std::vector<std::unique_ptr<SfSparseVector>>>, Dictionary);
     Dataset():doc_features(nullptr), dimensionality(0), NPOS(0){};
     virtual float inner_product(size_t index, const std::vector<float> &weights) const;
-    virtual std::vector<int> rescore(const vector<float> &weights,
+    virtual std::vector<std::pair<uint32_t, float> > top_terms(size_t index, const std:: vector<float> &weights, int num_top_terms) const;
+
+    virtual std::vector<std::pair<int, float>> rescore(const vector<float> &weights,
                             int num_threads, int num_top_docs,
                             const std::map<int, int> &judgments);
 
@@ -90,7 +92,7 @@ class ParagraphDataset:public Dataset {
                     std::unique_ptr<std::vector<std::unique_ptr<SfSparseVector>>>,
                     Dictionary);
     virtual int translate_index(int id) const {return parent_documents[id];}
-    std::vector<int> rescore(const vector<float> &weights,
+    std::vector<std::pair<int, float>> rescore(const vector<float> &weights,
                             int num_threads, int num_top_docs,
                             const std::map<int, int> &judgments);
 

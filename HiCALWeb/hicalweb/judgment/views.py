@@ -117,30 +117,28 @@ class JudgmentAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
         if is_from_cal:
             context[u"next_docs"] = []
             try:
-                next_patch = CALFunctions.send_judgment(
+                next_patch, top_terms = CALFunctions.send_judgment(
                     self.request.user.current_task.uuid,
                     doc_id,
                     rel_CAL)
                 if not next_patch:
                     return self.render_json_response(context)
-
-                docs_ranklist = CALFunctions.get_doc_score(self.request.user.current_task.uuid)
                 ret = {}
-                for line in docs_ranklist.split(','):
-                    if len(line) == 0:
-                        continue
-                    doc_id, score = line.split(' ')
-                    ret[doc_id] = score
+                next_patch_ids = []
+                for doc_id_score in next_patch:
+                    doc_id, doc_score = doc_id_score.split(':')
+                    ret[doc_id] = doc_score
+                    next_patch_ids.append(doc_id)
 
                 doc_ids_hack = []
-                for doc_id in next_patch:
+                for doc_id in next_patch_ids:
                     doc = {'doc_id': doc_id}
                     if '.' in doc_id:
                         doc['doc_id'], doc['para_id'] = doc_id.split('.')
                     doc_ids_hack.append(doc)
 
                 if 'doc' in self.request.user.current_task.strategy:
-                    documents = DocEngine.get_documents(next_patch,
+                    documents = DocEngine.get_documents(next_patch_ids,
                                                         self.request.user.current_task.topic.seed_query)
                 else:
                     documents = DocEngine.get_documents_with_snippet(doc_ids_hack,
@@ -150,8 +148,10 @@ class JudgmentAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
                     id = documents[i]['doc_id']
                     if id in ret:
                         documents[i]['score'] = ret[id]
+                        documents[i]['top_terms'] = json.dumps(top_terms[id])
                     else:
                         documents[i]['score'] = "0.5"
+                        documents[i]['top_terms'] = json.dumps({})
 
                 context[u"next_docs"] = documents
             except TimeoutError:

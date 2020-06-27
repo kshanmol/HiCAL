@@ -21,7 +21,7 @@ class BMI_para:public BMI {
     virtual void record_judgment(std::string doc_id, int judgment);
     Dataset *get_ranking_dataset() {return paragraphs;};
     vector<std::pair<string, float>> get_ranklist();
-    std::vector<int> perform_training_iteration();
+    std::vector<std::pair<int,float>> perform_training_iteration();
 
     bool is_judged(int id) {
         std::string para = (paragraphs->get_sf_sparse_vector(id)).doc_id;

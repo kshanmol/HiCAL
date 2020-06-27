@@ -201,23 +201,38 @@ void begin_session_view(const FCGX_Request & request, const vector<pair<string, 
     write_response(request, 200, "application/json", "{\"session-id\": \""+session_id+"\"}");
 }
 
+string stringify_top_terms(vector<pair<uint32_t, float>> top_terms) {
+    string top_terms_json = "{";
+    for(auto top_term: top_terms){
+        if(top_terms_json.length() > 1)
+            top_terms_json.push_back(',');
+        top_terms_json += "\"" + to_string(top_term.first) + "\"" + ":" + to_string(top_term.second);
+    }
+    top_terms_json.push_back('}');
+    return top_terms_json;   
+}
+
 // Fetch doc-ids in JSON
 string get_docs(string session_id, int max_count, int num_top_terms = 10){
     const unique_ptr<BMI> &bmi = SESSIONS[session_id];
-    vector<string> doc_ids = bmi->get_doc_to_judge(max_count);
+    vector<pair<string, float>> doc_ids = bmi->get_doc_to_judge(max_count);
 
     string doc_json = "[";
     string top_terms_json = "{";
-    for(string doc_id: doc_ids){
+    for(auto doc_id: doc_ids){
         if(doc_json.length() > 1)
             doc_json.push_back(',');
         if(top_terms_json.length() > 1)
             top_terms_json.push_back(',');
-        doc_json += "\"" + doc_id + "\"";
+        doc_json += "\"" + doc_id.first + ":" + to_string(doc_id.second) + "\"";
+        vector<pair<uint32_t, float>> top_terms = bmi->get_top_terms(doc_id.first, num_top_terms);
+        cerr << stringify_top_terms(top_terms) << endl;
+        top_terms_json += "\"" + doc_id.first + "\": " + stringify_top_terms(top_terms);
     }
     doc_json.push_back(']');
+    top_terms_json.push_back('}');
 
-    return "{\"session-id\": \"" + session_id + "\", \"docs\": " + doc_json + "}";
+    return "{\"session-id\": \"" + session_id + "\", \"docs\": " + doc_json + ",\"top-terms\": " + top_terms_json + "}";
 }
 
 // Handler for /delete_session
@@ -286,6 +301,7 @@ void get_ranklist(const FCGX_Request & request, const vector<pair<string, string
     }
 
     vector<pair<string, float>> ranklist = SESSIONS[session_id]->get_ranklist();
+
     string ranklist_str = "";
     for(int i=0; i < ranklist.size(); i++){
       ranklist_str += ranklist[i].first + " " + to_string(ranklist[i].second);
@@ -297,6 +313,47 @@ void get_ranklist(const FCGX_Request & request, const vector<pair<string, string
     //text to json
     string json_ret = "{\"ranklist\": \"" + ranklist_str + "\"}";
     write_response(request, 200, "application/json", json_ret);
+}
+
+// Handler for /top_terms
+void get_top_terms(const FCGX_Request & request, const vector<pair<string, string>> &params){
+    string session_id;
+    string doc_id = "";
+
+    for(auto kv: params){
+        if(kv.first == "session_id"){
+            session_id = kv.second;
+        } else if(kv.first == "doc_id"){
+            doc_id = kv.second;
+        }    
+    }
+
+    if(session_id.size() == 0){
+        write_response(request, 400, "application/json", "{\"error\": \"Non empty session_id required\"}");
+    }
+
+    if(SESSIONS.find(session_id) == SESSIONS.end()){
+        write_response(request, 404, "application/json", "{\"error\": \"session not found\"}");
+        return;
+    }
+
+    if (doc_id.empty()){
+        write_response(request, 400, "application/json", "{\"error\": \"Non empty doc_id required for top_terms\"}");
+    }
+
+    vector<pair<uint32_t, float>> top_terms = SESSIONS[session_id]->get_top_terms(doc_id, 10);
+    
+    string top_terms_str = "";
+    for(int i=0; i < top_terms.size(); i++){
+      top_terms_str += to_string(top_terms[i].first) + " " + to_string(top_terms[i].second);
+      if(i!=(top_terms.size()-1)){
+        top_terms_str += ",";
+      }
+    }
+
+    //text to json
+    string json_ret = "{\"top_terms\": \"" + top_terms_str + "\"}";
+    write_response(request, 200, "application/json", json_ret);    
 }
 
 // Handler for /log
@@ -427,6 +484,10 @@ void process_request(const FCGX_Request & request) {
     }else if(action == "get_ranklist"){
         if(method == "GET"){
             get_ranklist(request, params);
+        }
+    }else if(action == "get_top_terms"){
+        if(method == "GET"){
+            get_top_terms(request, params);
         }
     }else if(action == "delete_session"){
         if(method == "DELETE"){

@@ -24,7 +24,7 @@ class BMI_online_learning:public BMI {
         size_t refresh_period,
         float delta,
         int training_iterations);
-    std::vector<int> perform_training_iteration();
+    std::vector<std::pair<int, float>> perform_training_iteration();
 };
 
 #endif // BMI_ONLINE_LEARNING_H

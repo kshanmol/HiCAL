@@ -39,8 +39,8 @@ void BMI_reduced_ranking::score_docs_insertion_sort(const vector<float> &weights
     }
 }
 
-vector<int> BMI_reduced_ranking::subset_rescore(const vector<float> &weights) {
-    vector<int> res;
+vector<pair<int, float>> BMI_reduced_ranking::subset_rescore(const vector<float> &weights) {
+    vector<pair<int, float>> res;
     vector<thread> t;
 
     pair<float, int> top_docs[judgments_per_iteration * num_threads];
@@ -66,12 +66,12 @@ vector<int> BMI_reduced_ranking::subset_rescore(const vector<float> &weights) {
 
     sort(top_docs, top_docs + judgments_per_iteration * num_threads, greater<pair<float, int>>());
     for(int i = judgments_per_iteration-1;i>=0; i--){
-        res.push_back(top_docs[i].second);
+        res.push_back({top_docs[i].second, top_docs[i].first});
     }
     return res;
 }
 
-vector<int> BMI_reduced_ranking::perform_training_iteration(){
+vector<pair<int, float>> BMI_reduced_ranking::perform_training_iteration(){
     lock_guard<mutex> lock_training(training_mutex);
 
     sync_training_cache();
@@ -88,8 +88,8 @@ vector<int> BMI_reduced_ranking::perform_training_iteration(){
         TIMER_END(rescoring);
 
         indices.clear();
-        for(int i: results)
-            indices.push_back(i);
+        for(auto i: results)
+            indices.push_back(i.first);
         sort(indices.begin(), indices.end());
 
         return results;

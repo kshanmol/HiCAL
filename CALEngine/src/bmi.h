@@ -33,10 +33,11 @@ class BMI{
         uint32_t cur_iteration = 0;
         uint32_t next_iteration_target = 0;
         bool finished = false;
+        vector<float> weights;
     }state;
 
     // Stores an ordered list of documents to judge based on the classifier scores
-    std::vector<int> judgment_queue;
+    std::vector<std::pair<int,float>> judgment_queue;
 
     // rand() shouldn't be used because it is not thread safe
     std::mt19937 rand_generator;
@@ -68,7 +69,7 @@ class BMI{
     virtual vector<float> train();
 
     // Add the ids to the judgment list
-    void add_to_judgment_list(const std::vector<int> &ids);
+    void add_to_judgment_list(const std::vector<std::pair<int,float>> &ids);
 
     // Add to training_cache
     void add_to_training_cache(int id, int judgment);
@@ -88,7 +89,7 @@ class BMI{
         bool initialize = true);
 
     // Handler for performing a training iteration
-    virtual std::vector<int> perform_training_iteration();
+    virtual std::vector<std::pair<int,float>> perform_training_iteration();
 
     // Check if a given document is judged, lock training_cache_mutex before using this (not done here for efficiency purpose)
     virtual bool is_judged(int id) {
@@ -96,7 +97,7 @@ class BMI{
     }
 
     // Get upto `count` number of documents from `judgment_list`
-    virtual std::vector<std::string> get_doc_to_judge(uint32_t count);
+    virtual std::vector<std::pair<std::string, float>> get_doc_to_judge(uint32_t count);
 
     // Record judgment (-1 or 1) for a given doc_id
     virtual void record_judgment(std::string doc_id, int judgment);
@@ -104,8 +105,12 @@ class BMI{
     // Record batch judgments
     virtual void record_judgment_batch(std::vector<std::pair<std::string, int>> judgments);
 
+    virtual vector<float> get_weights(){ return state.weights; }
+
     // Get ranklist for current classifier state
     virtual vector<std::pair<string, float>> get_ranklist();
+    // Get top terms for a specific document during the current classifier state
+    virtual vector<std::pair<uint32_t, float>> get_top_terms(string doc_id, int num_top_terms);
 
     virtual Dataset *get_ranking_dataset() {return documents;};
     virtual string get_log() {return "{}";}

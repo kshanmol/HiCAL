@@ -35,7 +35,7 @@ def send_judgment(session, doc_id, rel, next_batch_size=5):
 
     if resp and resp['status'] == '200':
         content = json.loads(content.decode('utf-8'))
-        return content['docs']
+        return content['docs'], content['top-terms']
     else:
         raise CALServerError(resp['status'])
 
@@ -134,7 +134,7 @@ def get_documents(session, num_docs, query):
 
     if resp and resp['status'] == '200':
         content = json.loads(content.decode('utf-8'))
-        return content['docs']
+        return content['docs'], content['top-terms']
     else:
         raise CALServerError(resp['status'])
 

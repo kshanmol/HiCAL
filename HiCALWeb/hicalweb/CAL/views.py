@@ -69,43 +69,40 @@ class DocAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
         session = self.request.user.current_task.uuid
         seed_query = self.request.user.current_task.topic.seed_query
         try:
-            docs_ids_to_judge = CALFunctions.get_documents(str(session), 5,
+            docs_ids_to_judge, top_terms = CALFunctions.get_documents(str(session), 5,
                                                            seed_query)
             if not docs_ids_to_judge:
                 return self.render_json_response([])
 
-            #changing for personal
-            docs_ranklist = CALFunctions.get_doc_score(str(session))
-
             ret = {}
-            for line in docs_ranklist.split(','):
-                if len(line) == 0:
-                    continue
-                doc_id, score = line.split(' ')
-                ret[doc_id] = score
-
+            next_patch_ids = []
+            for doc_id_score in docs_ids_to_judge:
+                doc_id, doc_score = doc_id_score.split(':')
+                ret[doc_id] = doc_score
+                next_patch_ids.append(doc_id)
 
             doc_ids_hack = []
-            for doc_id in docs_ids_to_judge:
+            for doc_id in next_patch_ids:
                 doc = {'doc_id': doc_id}
                 if '.' in doc_id:
                     doc['doc_id'], doc['para_id'] = doc_id.split('.')
                 doc_ids_hack.append(doc)
 
             if 'doc' in self.request.user.current_task.strategy:
-                documents = DocEngine.get_documents(docs_ids_to_judge,
+                documents = DocEngine.get_documents(next_patch_ids,
                                                     self.request.user.current_task.topic.seed_query)
             else:
                 documents = DocEngine.get_documents_with_snippet(doc_ids_hack,
                                                     self.request.user.current_task.topic.seed_query)
 
-
             for i in range(len(documents)):
                 id = documents[i]['doc_id']
                 if id in ret:
                     documents[i]['score'] = ret[id]
+                    documents[i]['top_terms'] = json.dumps(top_terms[id])
                 else:
                     documents[i]['score'] = "1"
+                    documents[i]['top_terms'] = json.dumps({})
 
             return self.render_json_response(documents)
         except TimeoutError:

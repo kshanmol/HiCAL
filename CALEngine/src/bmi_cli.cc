@@ -182,7 +182,7 @@ void begin_bmi_helper(const pair<string, Seed> &seed_query, const unique_ptr<Dat
         return;
     }
 
-    vector<string> doc_ids;
+    vector<pair<string, float>> doc_ids;
     int max_effort = CMD_LINE_INTS["--max-effort"];
     int max_iterations = CMD_LINE_INTS["--num-iterations"];
 
@@ -199,9 +199,9 @@ void begin_bmi_helper(const pair<string, Seed> &seed_query, const unique_ptr<Dat
     int effort = 0;
     ofstream logfile(CMD_LINE_STRINGS["--judgment-logpath"] + "/" + seed_query.first);
     while(!(doc_ids = bmi->get_doc_to_judge(1)).empty()){
-        int judgment = get_judgment(seed_query.first, doc_ids[0]);
-        bmi->record_judgment(doc_ids[0], judgment);
-        logfile << doc_ids[0] <<" "<< (judgment == -1?0:judgment)<<endl;
+        int judgment = get_judgment(seed_query.first, doc_ids[0].first);
+        bmi->record_judgment(doc_ids[0].first, judgment);
+        logfile << doc_ids[0].first <<" "<< (judgment == -1?0:judgment)<<endl;
         effort++;
         if(effort >= max_effort || bmi->get_state().cur_iteration >= max_iterations)
             break;

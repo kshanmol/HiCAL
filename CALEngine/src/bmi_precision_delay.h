@@ -13,7 +13,7 @@ class BMI_precision_delay:public BMI {
     void record_judgment_batch(std::vector<std::pair<std::string, int>> _judgments);
     vector<float> weights;
     bool skip_training = false;
-    vector<int> perform_training_iteration();
+    vector<std::pair<int,float>> perform_training_iteration();
 
     public:
     BMI_precision_delay(Seed seed,

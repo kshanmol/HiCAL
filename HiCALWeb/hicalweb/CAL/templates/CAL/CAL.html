@@ -152,9 +152,12 @@
             <h5 class="card-title text-secondary mt-4">Highlighted terms <span class="badge badge-secondary">Beta</span></h5>
             <ul class="list-group" id="highlighted_terms_list">
             </ul>
-						<div class="small"><code id="docscore_text"></code><code id="document_score"></code></div>
           </div>
-
+          <div id="doc_scores">
+            <h5 class="card-title text-secondary mt-4">Scores</h5>
+            <div class="small"><code id="document_score"></code></div>
+            <div class="small"><code id="document_top_terms"></code></div>
+          </div>
 
         </div>
       </div>
@@ -267,14 +270,14 @@
                     }
                     if(!queue.isEmpty()){
                         var next_doc = queue.dequeue();
-												//$("#document_score").text(next_doc["score"]);
                         updateDocument(
                                 next_doc["doc_id"],
                                 next_doc["title"],
                                 next_doc["date"],
                                 next_doc["snippet"],
                                 next_doc["content"],
-																next_doc["score"]
+                                next_doc["score"],
+                                next_doc["top_terms"]
                         );
 
                     }
@@ -285,8 +288,8 @@
                             "",
                             "Something went wrong..",
                             "",
-														"",
-														""
+							"",
+							""
                         );
                 }
             },
@@ -297,7 +300,8 @@
                     "",
                     "<code>" + result['status'] + " " +result['statusText'] + "</code>",
                     "",
-										"");
+                    "",
+                    "");
                 }
                 console.error("Error occurred: " + JSON.stringify(result));
             },
@@ -309,7 +313,8 @@
                         "",
                         "<code>" + xhr.responseText + "</code>",
                         "",
-												"");
+                        "",
+                        "");
                     }
                     console.error("Failed to get documents. Error message: "+xhr.responseText);
                 }
@@ -332,13 +337,14 @@
         });
 
 
-        function updateDocument(id, title, date, snippet, content, score){
+        function updateDocument(id, title, date, snippet, content, score, top_terms){
             console.log("Updating document view for document id: " + id);
             $('#cal-document').attr("data-doc-id", id).data("doc-id", id);
             $("#document_id").text(id);
             $("#document_title").html(title);
             $("#document_title").removeClass();
-						$("#document_score").text(score);
+            $("#document_score").text(score);
+            $("#document_top_terms").text(top_terms);
             $("#document_date").html(date);
             $("#document_snippet").html(snippet);
             if (show_full_document_content){
@@ -482,8 +488,9 @@
                                     "",
                                     "No documents received for judging",
                                     "",
-                                    "CAL has not returned a new " +
-                                    "set of documents to return. Please try refreshing.",
+                                    "CAL has not returned a new " + "set of documents to return. Please try refreshing.",
+                                    "",
+                                    "",
                                     ""
                             );
                         }else{
@@ -503,7 +510,8 @@
                                         next_doc["date"],
                                         next_doc["snippet"],
                                         next_doc["content"],
-																				next_doc["score"]
+                                        next_doc["score"],
+                                        next_doc["top_terms"]
                                 );
                             }
 
@@ -534,7 +542,8 @@
                             "",
                             xhr.responseText,
                             "",
-														"");
+                            "",
+							"");
                         }
                         console.log("Something went wrong. Timeout error." +
                             "Judgment may have not been recorded to CAL.", xhr.responseText);
@@ -560,7 +569,8 @@
                         next_doc["date"],
                         next_doc["snippet"],
                         next_doc["content"],
-												next_doc["score"]
+                        next_doc["score"],
+                        next_doc["top_terms"]
                 );
 
             }else{
@@ -570,7 +580,8 @@
                         "",
                         "The queue is empty.",
                         "",
-												"");
+                        "",
+						"");
             }
 
             // check if doc_id already in latestJudgedDocsQueue
@@ -694,7 +705,8 @@
             doc_date,
             doc_snippet,
             doc_content,
-						"check3"
+            "score_here",
+            "top_terms_here"
         );
 
         $('#document_title').removeClass();
@@ -714,7 +726,8 @@
                         result[0]['date'],
                         doc_snippet,
                         result[0]['content'],
-												"check3"
+                        "score_here",
+                        "top_terms_here"
                     );
 
                     // update instance so that we don't make another call.
@@ -724,11 +737,12 @@
                 error: function (result){
                     if(document_isEmpty()){
                         updateDocument("",
-                        "<span class='text-danger'>Something went wrong..</sapn>",
+                        "<span class='text-danger'>Something went wrong..</span>",
                         "",
                         result['message'],
                         "",
-												"");
+                        "",
+					    "");
                     }
 
                     console.error("Something went wrong. Judgment may have not been recorded.", result['responseText'])
@@ -737,9 +751,11 @@
                     502: function (xhr) {
                         if(document_isEmpty()){
                             updateDocument("",
-                            "<span class='text-danger'>Something went wrong..</sapn>",
+                            "<span class='text-danger'>Something went wrong..</span>",
                             "",
                             xhr.responseText,
+                            "",
+                            "",
                             "");
                         }
                         console.error("Something went wrong. Timeout error. Judgment may have not been recorded to CAL.", xhr.responseText);
