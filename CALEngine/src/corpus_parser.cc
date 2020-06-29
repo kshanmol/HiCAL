@@ -8,6 +8,7 @@
 #include "utils/feature_writer.h"
 #include "utils/text_utils.h"
 #include "utils/utils.h"
+#include "dataset.h"
 #include "features.h"
 #include "utils/feature_parser.h"
 #include "utils/simple-cmd-line-helper.h"
@@ -42,13 +43,15 @@ int main(int argc, char **argv){
     AddFlag("--concatenated", "Input corpus archive is concatenated", bool(false));
     AddFlag("--help", "Show Help", bool(false));
 
+    AddFlag("--test-in", "Input corpus archive for test data", string(""));
+    AddFlag("--test-out", "Output feature file for test data", string(""));
+
     ParseFlags(argc, argv);
 
     if(CMD_LINE_BOOLS["--help"]){
         ShowHelp();
         return 0;
     }
-
 
     string in_filename = CMD_LINE_STRINGS["--in"];
     string para_in_filename = CMD_LINE_STRINGS["--para-in"];
@@ -57,6 +60,9 @@ int main(int argc, char **argv){
     string para_out_filename = CMD_LINE_STRINGS["--para-out"];
     bool bin_out = (CMD_LINE_STRINGS["--type"] == "bin");
     bool is_concatenated = CMD_LINE_BOOLS["--concatenated"];
+
+    string test_filename = CMD_LINE_STRINGS["--test-in"];
+    string test_out_filename = CMD_LINE_STRINGS["--test-out"];
 
     cerr<<"Opening file "<<in_filename<<endl;
     archive *a = archive_read_new();
@@ -125,6 +131,7 @@ int main(int argc, char **argv){
         }
         fw_1->finish();
     }
+
     cerr<<endl<<"Computing idf"<<endl;
 
     vector<int> new_ids(dictionary.size());
@@ -157,6 +164,7 @@ int main(int argc, char **argv){
     // Pass 2
     unique_ptr<FeatureParser> fp_1;
     unique_ptr<FeatureWriter> fw_2;
+
     if(bin_out){
         fp_1 = make_unique<BinFeatureParser>(pass1_filename);
         fw_2 = make_unique<BinFeatureWriter>(out_filename, dictionary);
@@ -276,5 +284,61 @@ int main(int argc, char **argv){
             /*     break; */
         }
         para_fw->finish();
+    }
+
+    if(test_filename.length() > 0){
+        cerr<<"Opening test file "<<test_filename<<endl;
+        archive *a_test = archive_read_new();
+        archive_read_support_format_all(a_test);
+        archive_read_support_filter_all(a_test);
+
+        int r_test = archive_read_open_filename(a_test, test_filename.c_str(), 10240);
+        if(r_test){
+            fail(archive_error_string(a_test), r_test);
+        }
+
+        archive_entry *test_entry;
+        size_t test_num_docs = 0;
+
+        cerr << "Beginning pass for test set" << endl;
+
+        // Load document features
+        unique_ptr<FeatureParser> feature_parser = make_unique<BinFeatureParser>(out_filename);
+        unique_ptr<Dataset> documents = Dataset::build(feature_parser.get());
+
+        // Pass 1: get and write features for test documents
+        {
+            unique_ptr<FeatureWriter> test_fw;
+            if(bin_out)
+                test_fw = make_unique<BinFeatureWriter>(test_out_filename, vector<pair<string, uint32_t>>());
+            else
+                test_fw = make_unique<SVMlightFeatureWriter>(test_out_filename, "", vector<pair<string, uint32_t>>());
+
+            while (true) {
+                r_test = archive_read_next_header(a_test, &test_entry);
+                if (r_test == ARCHIVE_EOF)
+                    break;
+                if (r_test != ARCHIVE_OK) {
+                    fail(archive_error_string(a_test), 1);
+                }
+                if (!(archive_entry_filetype(test_entry) & AE_IFREG))
+                    continue;
+
+                string test_doc_name = (archive_entry_pathname(test_entry));
+                if(test_doc_name.find_last_of('/') != test_doc_name.npos){
+                    test_doc_name = test_doc_name.substr(test_doc_name.find_last_of('/') + 1);
+                }
+                string test_content = read_content(a_test);
+                test_num_docs++;
+
+                test_fw->write(features::get_features(test_content, *documents.get(), 1, test_doc_name));
+                cerr<<test_num_docs<<" documents processed\r";
+                /* if(num_docs == 1000) */
+                /*     break; */
+            }
+            test_fw->finish();
+        }
+        archive_read_close(a_test);
+        archive_read_free(a_test);
     }
 }

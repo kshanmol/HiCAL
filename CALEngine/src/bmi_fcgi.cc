@@ -14,6 +14,7 @@
 using namespace std;
 unordered_map<string, unique_ptr<BMI>> SESSIONS;
 unique_ptr<Dataset> documents = nullptr;
+unique_ptr<Dataset> test_documents = nullptr;
 unique_ptr<ParagraphDataset> paragraphs = nullptr;
 unordered_map<uint32_t, string> id_tokens;
 
@@ -215,7 +216,20 @@ string stringify_top_terms(vector<pair<uint32_t, float>> top_terms) {
     return top_terms_json;   
 }
 
+string stringify_test_scores(vector<pair<string, float>> scores, unordered_map<string, int> labels) {
+    string test_set_json = "{";
+    for(auto doc_score: scores){
+        if(test_set_json.length() > 1)
+            test_set_json.push_back(',');
+        test_set_json += "\"" + doc_score.first + "\"" + ":" + "{\"label\":" + to_string(1) + ",\"score\":" + to_string(doc_score.second) + "}";
+    }
+    test_set_json.push_back('}');
+    return test_set_json;
+}
+
 // Fetch doc-ids in JSON
+// Also fetches top terms
+// Also fetches performance on test set
 string get_docs(string session_id, int max_count, int num_top_terms = 10){
     const unique_ptr<BMI> &bmi = SESSIONS[session_id];
     vector<pair<string, float>> doc_ids = bmi->get_doc_to_judge(max_count);
@@ -235,7 +249,20 @@ string get_docs(string session_id, int max_count, int num_top_terms = 10){
     doc_json.push_back(']');
     top_terms_json.push_back('}');
 
-    return "{\"session-id\": \"" + session_id + "\", \"docs\": " + doc_json + ",\"top-terms\": " + top_terms_json + "}";
+    // Scoring of test docs
+    auto state = bmi->get_state();
+    auto weights = state.weights;
+    auto model_no = state.cur_iteration;
+    vector<pair<string, float>> test_docs_scores;
+    for (int idx; idx < test_documents->size(); idx++) {
+        float score = test_documents->inner_product(idx, weights);
+        test_docs_scores.push_back({test_documents->get_id(idx), score});
+        //cerr << test_documents->get_id(idx) << " " << score << endl;
+    }
+    unordered_map<string, int> labels;
+    string test_set_json = stringify_test_scores(test_docs_scores, labels);
+
+    return "{\"session-id\": \"" + session_id + "\", \"docs\": " + doc_json + ",\"top-terms\": " + top_terms_json + ",\"test-scores\": " + test_set_json + ",\"model-number\": " + to_string(model_no) + "}";
 }
 
 // Handler for /delete_session
@@ -469,6 +496,7 @@ void fcgi_listener(){
 
 int main(int argc, char **argv){
     AddFlag("--doc-features", "Path of the file with list of document features", string(""));
+    AddFlag("--test-features", "Path of the file with list of test document features", string(""));
     AddFlag("--para-features", "Path of the file with list of paragraph features", string(""));
     AddFlag("--df", "Path of the file with list of terms and their document frequencies", string(""));
     AddFlag("--threads", "Number of threads to use for scoring", int(8));
@@ -499,6 +527,15 @@ int main(int argc, char **argv){
         cerr<<"Read "<<documents->size()<<" docs"<<endl;
     }
     TIMER_END(documents_loader);
+
+    // Load test docs
+    cerr<<"Loading test document features on memory"<<endl;
+    {
+        unique_ptr<FeatureParser> feature_parser;
+        feature_parser = make_unique<BinFeatureParser>(CMD_LINE_STRINGS["--test-features"]);
+        test_documents = Dataset::build(feature_parser.get());
+        cerr<<"Read "<<test_documents->size()<<" test docs"<<endl;
+    }
 
     // Load para
     string para_features_path = CMD_LINE_STRINGS["--para-features"];

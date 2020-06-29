@@ -19,7 +19,7 @@ unordered_map<string, int> features::get_tf(const vector<string> &words){
     return tf_map;
 }
 
-SfSparseVector features::get_features(const string &text, const Dataset &dataset, double max_norm){
+SfSparseVector features::get_features(const string &text, const Dataset &dataset, double max_norm, string doc_name){
     vector<FeatureValuePair> features;
     vector<pair<uint32_t, double>> tmp_features;
 
@@ -41,5 +41,5 @@ SfSparseVector features::get_features(const string &text, const Dataset &dataset
         features.push_back({feature.first, (float)(feature.second/max(max_norm, sum))});
     }
     sort(features.begin(), features.end(), [](auto &a, auto &b) -> bool{return a.id_ < b.id_;});
-    return SfSparseVector("Q", features);
+    return SfSparseVector(doc_name, features);
 }
