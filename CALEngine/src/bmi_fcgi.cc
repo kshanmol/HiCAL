@@ -17,6 +17,8 @@ unique_ptr<Dataset> documents = nullptr;
 unique_ptr<Dataset> test_documents = nullptr;
 unique_ptr<ParagraphDataset> paragraphs = nullptr;
 unordered_map<uint32_t, string> id_tokens;
+unordered_map<string, int> test_labels_map;
+
 
 // Get the uri without following and preceding slashes
 string parse_action_from_uri(string uri){
@@ -219,9 +221,10 @@ string stringify_top_terms(vector<pair<uint32_t, float>> top_terms) {
 string stringify_test_scores(vector<pair<string, float>> scores, unordered_map<string, int> labels) {
     string test_set_json = "{";
     for(auto doc_score: scores){
+        if(doc_score.first[0] == '.') continue;
         if(test_set_json.length() > 1)
             test_set_json.push_back(',');
-        test_set_json += "\"" + doc_score.first + "\"" + ":" + "{\"label\":" + to_string(1) + ",\"score\":" + to_string(doc_score.second) + "}";
+        test_set_json += "\"" + doc_score.first + "\"" + ":" + "{\"label\":" + to_string(test_labels_map[doc_score.first]) + ",\"score\":" + to_string(doc_score.second) + "}";
     }
     test_set_json.push_back('}');
     return test_set_json;
@@ -497,6 +500,7 @@ void fcgi_listener(){
 int main(int argc, char **argv){
     AddFlag("--doc-features", "Path of the file with list of document features", string(""));
     AddFlag("--test-features", "Path of the file with list of test document features", string(""));
+    AddFlag("--test-labels", "Path of the file with list of test document labels", string(""));
     AddFlag("--para-features", "Path of the file with list of paragraph features", string(""));
     AddFlag("--df", "Path of the file with list of terms and their document frequencies", string(""));
     AddFlag("--threads", "Number of threads to use for scoring", int(8));
@@ -570,6 +574,25 @@ int main(int argc, char **argv){
             }
             id_map_file.close();
             cerr<<"Read "<< id_tokens.size() << " id-tokens entries"<<endl;
+        }
+    }
+
+    string test_labels_path = CMD_LINE_STRINGS["--test-labels"];
+    if(test_labels_path.length() > 0){
+        cerr<<"Loading labels file"<<endl;
+        {
+            ifstream test_labels_file;
+            test_labels_file.open(test_labels_path);
+            string line;
+            while (getline(test_labels_file, line)){
+                istringstream iss(line);
+                string doc_id;
+                int label;
+                if (!(iss >> doc_id >> label)) { break; } // error
+                test_labels_map[doc_id] = label;
+            }
+            test_labels_file.close();
+            cerr<<"Read "<< test_labels_map.size() << " test file labels"<<endl;
         }
     }
 
