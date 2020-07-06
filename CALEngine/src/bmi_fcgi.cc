@@ -244,7 +244,7 @@ string get_docs(string session_id, int max_count, int num_top_terms = 10){
             doc_json.push_back(',');
         if(top_terms_json.length() > 1)
             top_terms_json.push_back(',');
-        doc_json += "\"" + doc_id.first + ":" + to_string(doc_id.second) + "\"";
+        doc_json += "{\"doc_id\":\"" + doc_id.first + "\",\"score\":" + to_string(doc_id.second) + "}";
         vector<pair<uint32_t, float>> top_terms = bmi->get_top_terms(doc_id.first, num_top_terms);
         cerr << stringify_top_terms(top_terms) << endl;
         top_terms_json += "\"" + doc_id.first + "\": " + stringify_top_terms(top_terms);

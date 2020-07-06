@@ -35,7 +35,7 @@ def send_judgment(session, doc_id, rel, next_batch_size=5):
 
     if resp and resp['status'] == '200':
         content = json.loads(content.decode('utf-8'))
-        return content['docs'], content['top-terms']
+        return content
     else:
         raise CALServerError(resp['status'])
 
@@ -78,7 +78,7 @@ def add_session(session, seed_query, mode):
     body = {'session_id': str(session),
             'seed_query': seed_query,
             'judgments_per_iteration': 1,
-            'async': True,
+            'async': False,
             'mode': mode}
     post_body = '&'.join('%s=%s' % (k, v) for k, v in body.items())
 
@@ -134,7 +134,7 @@ def get_documents(session, num_docs, query):
 
     if resp and resp['status'] == '200':
         content = json.loads(content.decode('utf-8'))
-        return content['docs'], content['top-terms']
+        return content
     else:
         raise CALServerError(resp['status'])
 

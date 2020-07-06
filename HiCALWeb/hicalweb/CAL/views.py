@@ -69,15 +69,16 @@ class DocAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
         session = self.request.user.current_task.uuid
         seed_query = self.request.user.current_task.topic.seed_query
         try:
-            docs_ids_to_judge, top_terms = CALFunctions.get_documents(str(session), 5,
-                                                           seed_query)
+            full_response = CALFunctions.get_documents(str(session), 5, seed_query)
+            docs_ids_to_judge, top_terms = full_response['docs'], full_response['top-terms']
+            model_number = full_response['model-number']
             if not docs_ids_to_judge:
                 return self.render_json_response([])
 
             ret = {}
             next_patch_ids = []
             for doc_id_score in docs_ids_to_judge:
-                doc_id, doc_score = doc_id_score.split(':')
+                doc_id, doc_score = doc_id_score['doc_id'], doc_id_score['score']
                 ret[doc_id] = doc_score
                 next_patch_ids.append(doc_id)
 
@@ -98,7 +99,7 @@ class DocAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
             for i in range(len(documents)):
                 id = documents[i]['doc_id']
                 if id in ret:
-                    documents[i]['score'] = ret[id]
+                    documents[i]['score'] = json.dumps({"score": str(-1 * ret[id]), "model-no": model_number})
                     documents[i]['top_terms'] = json.dumps(top_terms[id])
                     documents[i]['content'] = DocEngine.add_highlighting(documents[i]['content'], top_terms[id])
                 else:

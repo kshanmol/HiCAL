@@ -117,16 +117,18 @@ class JudgmentAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
         if is_from_cal:
             context[u"next_docs"] = []
             try:
-                next_patch, top_terms = CALFunctions.send_judgment(
+                full_response = CALFunctions.send_judgment(
                     self.request.user.current_task.uuid,
                     doc_id,
                     rel_CAL)
+                next_patch, top_terms = full_response['docs'], full_response['top-terms']
+                model_number = full_response['model-number']
                 if not next_patch:
                     return self.render_json_response(context)
                 ret = {}
                 next_patch_ids = []
                 for doc_id_score in next_patch:
-                    doc_id, doc_score = doc_id_score.split(':')
+                    doc_id, doc_score = doc_id_score['doc_id'], doc_id_score['score']
                     ret[doc_id] = doc_score
                     next_patch_ids.append(doc_id)
 
@@ -147,7 +149,7 @@ class JudgmentAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
                 for i in range(len(documents)):
                     id = documents[i]['doc_id']
                     if id in ret:
-                        documents[i]['score'] = ret[id]
+                        documents[i]['score'] = json.dumps({"score": str(-1 * ret[id]), "model-no": model_number}) # cal returns negated score
                         documents[i]['top_terms'] = json.dumps(top_terms[id])
                         documents[i]['content'] = DocEngine.add_highlighting(documents[i]['content'], top_terms[id])
                     else:

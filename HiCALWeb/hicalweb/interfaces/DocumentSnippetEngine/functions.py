@@ -23,26 +23,46 @@ def get_subject(content):
             return line.split(':', 1)[1].strip()
     return ""
 
-def add_mark_tags(word, top_terms):
+def highlight_color_map(top_terms):
+    scores = [v for k,v in top_terms.items()]
+    min_score = min(scores)
+    #colors = ["#FFFAC8", "#FFFA96", "#FFFA64", "#FFFA19"]  # yellows
+    colors = ["#FFECCC", "#FFDA99", "#FFC766", "#FFB533"]   # oranges
+    notch = (max(scores) - min(scores))/len(colors)
+
+    result = {}
+    for term, score in top_terms.items():
+        if score < min_score + notch:
+            result[term] = colors[0]
+        elif score < min_score + 2*notch:
+            result[term] = colors[1]
+        elif score < min_score + 3*notch:
+            result[term] = colors[2]
+        else:
+            result[term] = colors[3]
+    return result
+
+def add_mark_tags(word, top_terms, color_map):
     for term in top_terms:
         if term in word.lower() and len(term) > 1:
             term_score = term + " : " + str(top_terms[term])[:5]    # Display score to three decimal places
-            return "<span data-title=\"{0}\"><mark>{1}</mark></span>".format(term_score, word)
+            color = color_map[term]
+            return "<span data-title=\"{0}\"><mark style=\"background-color:{2};\">{1}</mark></span>".format(term_score, word, color)
     return word
 
 def add_highlighting(content, top_terms):
+    color_map = highlight_color_map(top_terms)
     content_result = []
     content_words = content.split(" ")
-
     for word in content_words:
         if "<br/>" in word:
             parts_result = []
             parts = word.split("<br/>")
             for part in parts:
-                parts_result.append(add_mark_tags(part, top_terms))
+                parts_result.append(add_mark_tags(part, top_terms, color_map))
             content_result.append("<br/>".join(parts_result))
         else:
-            content_result.append(add_mark_tags(word, top_terms))
+            content_result.append(add_mark_tags(word, top_terms, color_map))
 
     return " ".join(content_result)
 
