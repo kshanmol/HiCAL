@@ -23,18 +23,27 @@ def get_subject(content):
             return line.split(':', 1)[1].strip()
     return ""
 
+def add_mark_tags(word, top_terms):
+    for term in top_terms:
+        if term in word.lower() and len(term) > 1:
+            term_score = term + " : " + str(top_terms[term])[:5]    # Display score to three decimal places
+            return "<span data-title=\"{0}\"><mark>{1}</mark></span>".format(term_score, word)
+    return word
+
 def add_highlighting(content, top_terms):
     content_result = []
     content_words = content.split(" ")
 
     for word in content_words:
-        for term in top_terms:
-            if term in word.lower() and len(term) > 1:
-                term_score = term + " : " + str(top_terms[term])[:5]    # Display score to three decimal places
-                content_result.append("<span data-title=\"{0}\"><mark>{1}</mark></span>".format(term_score, word))
-                break
+        if "<br/>" in word:
+            parts_result = []
+            parts = word.split("<br/>")
+            for part in parts:
+                parts_result.append(add_mark_tags(part, top_terms))
+            content_result.append("<br/>".join(parts_result))
         else:
-            content_result.append(word)
+            content_result.append(add_mark_tags(word, top_terms))
+
     return " ".join(content_result)
 
 def get_documents(doc_ids, query=None):
