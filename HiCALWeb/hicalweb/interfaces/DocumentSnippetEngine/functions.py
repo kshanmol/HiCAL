@@ -23,6 +23,19 @@ def get_subject(content):
             return line.split(':', 1)[1].strip()
     return ""
 
+def add_highlighting(content, top_terms):
+    content_result = []
+    content_words = content.split(" ")
+
+    for word in content_words:
+        for term in top_terms:
+            if term in word.lower() and len(term) > 1:
+                term_score = term + " : " + str(top_terms[term])[:5]    # Display score to three decimal places
+                content_result.append("<span data-title=\"{0}\"><mark>{1}</mark></span>".format(term_score, word))
+                break
+        else:
+            content_result.append(word)
+    return " ".join(content_result)
 
 def get_documents(doc_ids, query=None):
     """

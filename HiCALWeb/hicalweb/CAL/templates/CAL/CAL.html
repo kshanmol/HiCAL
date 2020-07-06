@@ -25,7 +25,7 @@
     <div class="btn-group" role="group">
         <a href="#" onclick="return send_judgment($('#cal-document').data('doc-id'), $('#document_title').text(), $('#document_snippet').html(), 0, 'click');" class="btn btn-sm btn-outline-secondary d-flex align-items-center">Not Rel</a>
         <a href="#" onclick="return send_judgment($('#cal-document').data('doc-id'), $('#document_title').text(), $('#document_snippet').html(), 1, 'click');" class="btn btn-sm btn-outline-secondary d-flex align-items-center">Rel</a>
-        <a href="#" onclick="return send_judgment($('#cal-document').data('doc-id'), $('#document_title').text(), $('#document_snippet').html(), 2, 'click');" class="btn btn-sm btn-outline-secondary d-flex align-items-center">Highly Rel</a>
+        <!-- <a href="#" onclick="return send_judgment($('#cal-document').data('doc-id'), $('#document_title').text(), $('#document_snippet').html(), 2, 'click');" class="btn btn-sm btn-outline-secondary d-flex align-items-center">Highly Rel</a> -->
      </div>
   </form>
 </div>
@@ -104,8 +104,8 @@
                  class="btn btn-sm btn-outline-secondary d-flex align-items-center">Not relevant</a>
               <a href="#" onclick="return send_judgment($('#cal-document').data('doc-id'), $('#document_title').text(), $('#document_snippet').html(), 1, 'click');"
                  class="btn btn-sm btn-outline-secondary d-flex align-items-center">Relevant</a>
-              <a href="#" onclick="return send_judgment($('#cal-document').data('doc-id'), $('#document_title').text(), $('#document_snippet').html(), 2, 'click');"
-                 class="btn btn-sm btn-outline-secondary d-flex align-items-center">Highly relevant</a>
+              <!-- <a href="#" onclick="return send_judgment($('#cal-document').data('doc-id'), $('#document_title').text(), $('#document_snippet').html(), 2, 'click');"
+                 class="btn btn-sm btn-outline-secondary d-flex align-items-center">Highly relevant</a> -->
             </div>
           </div>
 
@@ -129,14 +129,14 @@
                 <small class="left-margin">Mark as relevant</small>
               </div>
             </div>
-            <div class="row">
+            <!-- <div class="row">
               <div class="col-md-1">
                 <span class="badge badge-success">h</span>
               </div>
               <div class="col-md-10">
                 <small class="left-margin">Mark as highly relevant</small>
               </div>
-            </div>
+            </div> -->
             <div class="row">
               <div class="col-md-1">
                 <span class="badge badge-primary">u</span>
@@ -147,12 +147,11 @@
             </div>
           </div>
 
-
-          <div id="highlighted_words">
+          <!-- <div id="highlighted_words">
             <h5 class="card-title text-secondary mt-4">Highlighted terms <span class="badge badge-secondary">Beta</span></h5>
             <ul class="list-group" id="highlighted_terms_list">
             </ul>
-          </div>
+          </div> -->
           <div id="doc_scores">
             <h5 class="card-title text-secondary mt-4">Scores</h5>
             <div class="small"><code id="document_score"></code></div>

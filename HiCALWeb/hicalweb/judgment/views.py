@@ -149,6 +149,7 @@ class JudgmentAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
                     if id in ret:
                         documents[i]['score'] = ret[id]
                         documents[i]['top_terms'] = json.dumps(top_terms[id])
+                        documents[i]['content'] = DocEngine.add_highlighting(documents[i]['content'], top_terms[id])
                     else:
                         documents[i]['score'] = "0.5"
                         documents[i]['top_terms'] = json.dumps({})
