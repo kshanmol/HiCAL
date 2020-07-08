@@ -153,10 +153,22 @@
             </ul>
           </div> -->
           <div id="doc_scores">
-            <h5 class="card-title text-secondary mt-4">Scores</h5>
-            <div class="small"><code id="document_score"></code></div>
+            <h5 class="card-title text-secondary mt-4">Relevance Score</h5>
+            <!-- <div class="small"><code id="document_score"></code></div>
             </br>
-            <div class="small"><code id="document_top_terms"></code></div>
+            <div class="small"><code id="document_top_terms"></code></div> -->
+						<div class="row">
+							<div class="col-md-1">
+                <span class="badge badge-light" id="document_score">Loading</span>
+              </div>
+            </div>
+          </div>
+
+					<div id="test_data_plot">
+            <h5 class="card-title text-secondary mt-4">Test Set Performance</h5>
+						<div class="row">
+							<div id="test_scores" style="width: 500px; height: 400px;"></div>
+            </div>
           </div>
 
         </div>
@@ -175,6 +187,7 @@
     <script src="{% static 'js/moment.min.js' %}"></script>
     <script src="{% static 'js/idle.js' %}"></script>
     <script src="{% static 'js/timer.js' %}"></script>
+		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
     <script>
 
@@ -343,8 +356,110 @@
             $("#document_id").text(id);
             $("#document_title").html(title);
             $("#document_title").removeClass();
-            $("#document_score").text(score);
-            $("#document_top_terms").text(top_terms);
+
+						var obj = JSON.parse(score);
+						var test_scores = obj['test-scores'];
+						var doc_id, score_label, doc_score, doc_label;
+						var relevantX = [];
+					  var relevantY = [];
+					  var relevantText = [];
+					  var notReleventX = [];
+					  var notReleventY = [];
+					  var notRelevantText = [];
+						var relevantIndex = 11, nonrelevantIndex = 1;
+					  var maxScore = 1.0, minScore = 0.0;
+					  for (var key of Object.keys(test_scores)) {
+								doc_id = key;
+								score_label = test_scores[key];
+								doc_score = parseFloat(score_label['score']);
+								doc_label = parseInt(score_label['label']);
+					      if(doc_label == 1){
+					      		relevantX.push(doc_score);
+					          relevantY.push(relevantIndex);
+										relevantIndex = relevantIndex + 1;
+					          relevantText.push(doc_id)
+					      }
+					      else{
+					      		notReleventX.push(doc_score);
+					          notReleventY.push(nonrelevantIndex);
+										nonrelevantIndex = nonrelevantIndex + 1;
+					          notRelevantText.push(doc_id);
+					      }
+					      if(doc_score > maxScore){
+					      		maxScore = doc_score;
+					      }
+					      if(doc_score < minScore){
+					      		minScore = doc_score;
+					      }
+							}
+						  var relevant = {
+						  x: relevantX,
+						  y: relevantY,
+						  mode: 'markers',
+						  type: 'scatter',
+						  name: 'Rel Docs',
+						  marker: { size: 6, color: 'green' }
+						};
+
+						var notRelevent = {
+						  x: notReleventX,
+						  y: notReleventY,
+						  mode: 'markers',
+						  type: 'scatter',
+						  name: 'Non-Rel Docs',
+						  marker: { size: 6, color: 'red' }
+						};
+						var data = [ relevant, notRelevent ];
+
+						var layout = {
+						  xaxis: {
+						    range: [ (minScore - 0.5), (maxScore + 0.5) ],
+								title: {
+							      text: 'Relevance Score',
+							      font: {
+							        family: 'monospace',
+							        size: 14,
+							        color: '#7f7f7f'
+							      }
+							    }
+						  },
+						  yaxis: {
+						    range: [0.5, 20.5],
+								title: {
+							      text: 'Document Id',
+							      font: {
+							        family: 'monospace',
+							        size: 14,
+							        color: '#7f7f7f'
+							      }
+							    }
+						  },
+						  title:''
+						};
+
+						// Plotly.newPlot('test_scores', data, layout, {staticPlot: true});
+						Plotly.newPlot('test_scores', data, layout);         // In case we want to show all document's scores also
+
+
+						var relevance_score = parseFloat(obj['score']);
+						var baseclass = "badge ";
+						var relevance_class;
+						if(relevance_score < 1){
+							relevance_class = "badge-danger";
+						}
+						if(relevance_score >= 1 && relevance_score <= 2){
+							relevance_class = "badge-warning";
+						}
+						if(relevance_score > 2){
+							relevance_class = "badge-success";
+						}
+						var final_class = baseclass.concat(relevance_class);
+            $("#document_score").html(relevance_score);
+						$('#document_score').removeClass();
+		        $('#document_score').addClass(final_class);
+
+
+            //$("#document_top_terms").text(top_terms);
             $("#document_date").html(date);
             $("#document_snippet").html(snippet);
             if (show_full_document_content){

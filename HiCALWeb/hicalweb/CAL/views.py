@@ -71,6 +71,7 @@ class DocAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
         try:
             full_response = CALFunctions.get_documents(str(session), 5, seed_query)
             docs_ids_to_judge, top_terms = full_response['docs'], full_response['top-terms']
+            test_scores = full_response['test-scores']
             model_number = full_response['model-number']
             if not docs_ids_to_judge:
                 return self.render_json_response([])
@@ -99,7 +100,7 @@ class DocAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
             for i in range(len(documents)):
                 id = documents[i]['doc_id']
                 if id in ret:
-                    documents[i]['score'] = json.dumps({"score": str(-1 * ret[id]), "model-no": model_number})
+                    documents[i]['score'] = json.dumps({"score": str(-1 * ret[id]), "model-no": model_number, "test-scores": test_scores})
                     documents[i]['top_terms'] = json.dumps(top_terms[id])
                     documents[i]['content'] = DocEngine.add_highlighting(documents[i]['content'], top_terms[id])
                 else:
