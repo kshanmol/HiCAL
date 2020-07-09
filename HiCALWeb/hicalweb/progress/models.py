@@ -11,9 +11,9 @@ from hicalweb.topic.models import Topic
 class Session(models.Model):
     STRATEGY_CHOICES = (
         ('doc', 'Document (CAL)'),
-        ('para', 'Paragraph (CAL)'),
-        ('doc_scal', 'Document (S-CAL)'),
-        ('para_scal', 'Paragraph (S-CAL)'),
+        # ('para', 'Paragraph (CAL)'),
+        # ('doc_scal', 'Document (S-CAL)'),
+        # ('para_scal', 'Paragraph (S-CAL)'),
     )
 
     username = models.ForeignKey(User)

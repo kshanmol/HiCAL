@@ -30,13 +30,13 @@ class SessionPredefinedTopicForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SessionPredefinedTopicForm, self).__init__(*args, **kwargs)
-        self.fields['topic'].queryset = Topic.objects.filter(~Q(number=None)).order_by('number')
+        self.fields['topic'].queryset = Topic.objects.filter(Q(number=347) | Q(number=408)).order_by('number')
         self.helper = FormHelper(self)
 
         self.helper.layout = Layout(
             'topic',
             Row(
-                Column('max_number_of_judgments', css_class='form-group col-md-6 mb-0'),
+                # Column('max_number_of_judgments', css_class='form-group col-md-6 mb-0'),
                 Column('strategy', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),
