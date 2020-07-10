@@ -22,6 +22,12 @@ h1 {
   border-bottom: 1px solid #eee;
 }
 
+.mydiv {
+  height:600px;
+  overflow-y: scroll;
+}
+
+
 .card-block {
   padding: 1rem !important;
 }
