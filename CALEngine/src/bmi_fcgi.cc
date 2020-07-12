@@ -3,6 +3,7 @@
 #include <string>
 #include <thread>
 #include <fcgio.h>
+#include <algorithm>
 #include "utils/simple-cmd-line-helper.h"
 #include "bmi_para.h"
 #include "bmi_para_scal.h"
@@ -230,6 +231,26 @@ string stringify_test_scores(vector<pair<string, float>> scores, unordered_map<s
     return test_set_json;
 }
 
+string stringify_top_model_terms(vector<float> weights, int num_top_terms = 10) {
+    vector< pair<uint32_t, float> > id_weights;
+    for(int i = 0; i < weights.size(); i++) {
+        id_weights.push_back({i, weights[i]});
+    }
+    sort(id_weights.begin(), id_weights.end(), [](auto &left, auto &right) {
+        return left.second > right.second;
+    });
+
+    string top_model_terms_json = "{";
+    int num_to_take = num_top_terms < weights.size() ? num_top_terms : weights.size();
+    for(int i = 0; i < num_top_terms; i++) {
+        if(top_model_terms_json.length() > 1)
+            top_model_terms_json.push_back(',');
+        top_model_terms_json += "\"" + id_tokens[id_weights[i].first] + "\"" + ":" + to_string(id_weights[i].second);
+    }
+    top_model_terms_json.push_back('}');
+    return top_model_terms_json;
+}
+
 // Fetch doc-ids in JSON
 // Also fetches top terms
 // Also fetches performance on test set
@@ -265,7 +286,9 @@ string get_docs(string session_id, int max_count, int num_top_terms = 10){
     unordered_map<string, int> labels;
     string test_set_json = stringify_test_scores(test_docs_scores, labels);
 
-    return "{\"session-id\": \"" + session_id + "\", \"docs\": " + doc_json + ",\"top-terms\": " + top_terms_json + ",\"test-scores\": " + test_set_json + ",\"model-number\": " + to_string(model_no) + "}";
+    string top_model_terms_json = stringify_top_model_terms(weights);
+
+    return "{\"session-id\": \"" + session_id + "\", \"docs\": " + doc_json + ",\"top-terms\": " + top_terms_json + ",\"top-model-terms\": " + top_model_terms_json + ",\"test-scores\": " + test_set_json + ",\"model-number\": " + to_string(model_no) + "}";
 }
 
 // Handler for /delete_session
