@@ -124,6 +124,7 @@ class JudgmentAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
                 next_patch, top_terms = full_response['docs'], full_response['top-terms']
                 test_scores = full_response['test-scores']
                 model_number = full_response['model-number']
+                top_model_terms = full_response['top-model-terms']
                 if not next_patch:
                     return self.render_json_response(context)
                 ret = {}
@@ -150,7 +151,7 @@ class JudgmentAJAXView(views.CsrfExemptMixin, views.LoginRequiredMixin,
                 for i in range(len(documents)):
                     id = documents[i]['doc_id']
                     if id in ret:
-                        documents[i]['score'] = json.dumps({"score": str(-1 * ret[id]), "model-no": model_number, "test-scores": test_scores}) # cal returns negated score
+                        documents[i]['score'] = json.dumps({"score": str(-1 * ret[id]), "model-no": model_number, "test-scores": test_scores, "top-model-terms": top_model_terms}) # cal returns negated score
                         documents[i]['top_terms'] = json.dumps(top_terms[id])
                         documents[i]['content'] = DocEngine.add_highlighting(documents[i]['content'], top_terms[id])
                     else:

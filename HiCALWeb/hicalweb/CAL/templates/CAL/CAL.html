@@ -164,10 +164,48 @@
             </div>
           </div>
 
+					<!-- For adding space between rows -->
+					<div id="space">
+            <h5 class="card-title text-secondary mt-4"></h5>
+						<div class="row">
+							<div class="col-md-1">
+                <span class="badge badge-light" id="space_1"></span>
+              </div>
+            </div>
+          </div>
+
 					<div id="test_data_plot">
             <h5 class="card-title text-secondary mt-4">Test Set Performance</h5>
 						<div class="row">
 							<div id="test_scores" style="width: 500px; height: 400px;"></div>
+            </div>
+          </div>
+
+
+					<!-- For adding space between rows -->
+					<div id="space">
+            <h5 class="card-title text-secondary mt-4"></h5>
+						<div class="row">
+							<div class="col-md-1">
+                <span class="badge badge-light" id="space_1"></span>
+              </div>
+            </div>
+          </div>
+
+					<!-- For adding space between rows -->
+					<div id="space">
+            <h5 class="card-title text-secondary mt-4"></h5>
+						<div class="row">
+							<div class="col-md-1">
+                <span class="badge badge-light" id="space_1"></span>
+              </div>
+            </div>
+          </div>
+
+					<div id="top_terms">
+            <h5 class="card-title text-secondary mt-1">Top Terms of Model</h5>
+						<div class="row">
+							<div id="model_top_terms" style="width: 400px; height: 600px;"></div>
             </div>
           </div>
 
@@ -359,6 +397,7 @@
 
 						var obj = JSON.parse(score);
 						var test_scores = obj['test-scores'];
+						var top_model_terms = obj['top-model-terms'];
 						var doc_id, score_label, doc_score, doc_label;
 						var relevantX = [];
 					  var relevantY = [];
@@ -366,7 +405,7 @@
 					  var notReleventX = [];
 					  var notReleventY = [];
 					  var notRelevantText = [];
-						var relevantIndex = 11, nonrelevantIndex = 1;
+						var relevantIndex = 12, nonrelevantIndex = 1;
 					  var maxScore = 1.0, minScore = 0.0;
 					  for (var key of Object.keys(test_scores)) {
 								doc_id = key;
@@ -409,11 +448,26 @@
 						  name: 'Non-Rel Docs',
 						  marker: { size: 6, color: 'red' }
 						};
-						var data = [ relevant, notRelevent ];
+
+						if(parseFloat(obj['score']) > maxScore){
+								maxScore = parseFloat(obj['score']);
+						}
+
+						var current_doc_score = {
+						  x: [parseFloat(obj['score'])],
+						  y: [11],
+						  mode: 'markers',
+						  type: 'scatter',
+						  name: 'Current Doc',
+						  marker: { size: 8, color: 'Blue' }
+						};
+
+						var data = [ relevant, current_doc_score, notRelevent ];
 
 						var layout = {
 						  xaxis: {
 						    range: [ (minScore - 0.5), (maxScore + 0.5) ],
+								zeroline: false,
 								title: {
 							      text: 'Relevance Score',
 							      font: {
@@ -424,7 +478,7 @@
 							    }
 						  },
 						  yaxis: {
-						    range: [0.5, 20.5],
+						    range: [0.5, 22.5],
 								title: {
 							      text: 'Document Id',
 							      font: {
@@ -459,7 +513,52 @@
 		        $('#document_score').addClass(final_class);
 
 
-            //$("#document_top_terms").text(top_terms);
+            var top_terms = [];
+					  var term_scores = [];
+						var str1 = "";
+						for (var key of Object.keys(top_model_terms)) {
+							model_term = key;
+							term_score = parseFloat(top_model_terms[key]);
+							top_terms.push(model_term);
+							term_scores.push(term_score);
+						}
+						var i = 0, j = 0;
+						var temp;
+						for (i = 0; i < term_scores.length; i++) {
+				    for (j = i; j < term_scores.length; j++) {
+				      if (term_scores[i] < term_scores[j]) {
+				        temp = term_scores[i];
+				        term_scores[i] = term_scores[j];
+				        term_scores[j] = temp;
+								temp = top_terms[i];
+				        top_terms[i] = top_terms[j];
+				        top_terms[j] = temp;
+					      };
+					    };
+					  };
+
+						var values = [top_terms, term_scores]
+
+						var data = [{
+						  type: 'table',
+						  header: {
+						    values: [["<b>Term</b>"], ["<b>Weight</b>"]],
+						    align: "center",
+						    line: {width: 1, color: 'black'},
+						    fill: {color: "grey"},
+						    font: {family: "Arial", size: 14, color: "white"}
+						  },
+						  cells: {
+						    values: values,
+						    align: "center",
+						    line: {color: "black", width: 1},
+						    font: {family: "Arial", size: 12, color: ["black"]}
+						  }
+						}]
+
+						Plotly.newPlot('model_top_terms', data, {staticPlot: true});
+
+            //$("#model_top_terms").text(str1);
             $("#document_date").html(date);
             $("#document_snippet").html(snippet);
             if (show_full_document_content){
