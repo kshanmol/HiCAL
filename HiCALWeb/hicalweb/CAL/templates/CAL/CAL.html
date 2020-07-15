@@ -68,7 +68,7 @@
 <div class="mb-4">
 
   <div class="row">
-    <div class="col-md-6 mydiv">
+    <div class="col-md-6 mydiv" style="box-shadow: 0 0 3px #ddd">
       <div class="card border-0">
         <div class="card-block document-cal" id="cal-document"
              data-doc-id="">
@@ -92,48 +92,50 @@
       </div>
     </div>
 
-    <div class="col-md-3">
+    <div class="col-md-3" style="box-shadow: 0 0 3px #ddd">
       <div class="sticky-top card border-0 mr-2 d-none d-sm-block" style="top:20px; z-index: 0;">
-        <div class="card-body p-0 mt-3">
+        <div class="card-body p-0 mt-3 text-center">
           <h5 class="card-title text-secondary">Judge document</h5>
           <!-- <div class="small"><code id="docno_text"></code><code id="document_id"></code></div> -->
 
-            <div class="btn-group mt-3" role="group">
+            <div class="btn-group mt-3" style="box-shadow: 0 0 5px rgb(148, 147, 147)" role="group">
               <a href="#" onclick="return send_judgment($('#cal-document').data('doc-id'), $('#document_title').text(), $('#document_snippet').html(), 0, 'click');"
-                 class="btn btn-sm btn-outline-secondary d-flex align-items-center">Not relevant</a>
+                 class="btn btn-med btn-outline-danger d-flex align-items-center">Not relevant</a>
               <a href="#" onclick="return send_judgment($('#cal-document').data('doc-id'), $('#document_title').text(), $('#document_snippet').html(), 1, 'click');"
-                 class="btn btn-sm btn-outline-secondary d-flex align-items-center">Relevant</a>
+                 class="btn btn-med btn-outline-success d-flex align-items-center">Relevant</a>
               <!-- <a href="#" onclick="return send_judgment($('#cal-document').data('doc-id'), $('#document_title').text(), $('#document_snippet').html(), 2, 'click');"
                  class="btn btn-sm btn-outline-secondary d-flex align-items-center">Highly relevant</a> -->
-          </div>
-
-
-					<!-- For adding space between rows -->
-					<div id="space">
-            <h5 class="card-title text-secondary mt-3"></h5>
-						<div class="row">
-							<div class="col-md-1">
-                <span class="badge badge-light" id="space_1"></span>
-              </div>
             </div>
-          </div>
 
-					<!-- For adding space between rows -->
-					<div id="space">
-            <h5 class="card-title text-secondary mt-3"></h5>
-						<div class="row">
-							<div class="col-md-1">
-                <span class="badge badge-light" id="space_1"></span>
-              </div>
+
+			<!-- For adding space between rows -->
+			<div id="space">
+                <h5 class="card-title text-secondary mt-3"></h5>
+				<div class="row">
+				    <div class="col-md-1">
+                        <span class="badge badge-light" id="space_1"></span>
+                     </div>
+                </div>
             </div>
-          </div>
 
-
-					<div style="top:100px;" id="top_terms">
-            <h5 class="card-title text-secondary mt-3">Top Terms of Model</h5>
-						<div class="row">
-							<div id="model_top_terms" style="width: 400px; height: 412px;"></div>
+			<!-- For adding space between rows -->
+			<div id="space">
+                <h5 class="card-title text-secondary mt-3"></h5>
+				<div class="row">
+				    <div class="col-md-1">
+                        <span class="badge badge-light" id="space_1"></span>
+                     </div>
+                </div>
             </div>
+
+            <div style="top:100px; box-shadow: 0 0 3px #ddd" id="top_terms">
+                <h6 class="card-title text-secondary mt-3" style="text-align: center; ">Top Terms of Model</h5>
+
+				<div class="row">
+					<div id="model_top_terms" style="width: 400px; height: 412px;"></div>
+            </div>
+            
+
           </div>
 
 
@@ -141,45 +143,43 @@
       </div>
     </div>
 
-		<div class="col-md-3">
+		<div class="col-md-3" style="box-shadow: 0 0 3px #ddd">
       <div class="sticky-top card border-0 mr-2 d-none d-sm-block" style="top:20px; z-index: 0;">
-        <div class="card-body p-0 mt-3">
+        <div class="card-body p-0 mt-3 text-center">
 
-          <div id="doc_scores">
-            <h5 class="card-title text-secondary mt-3">Relevance Score</h5>
-            <div class="row">
-							<div class="col-md-1">
-                <span class="badge badge-light" id="document_score">Loading</span>
-              </div>
-            </div>
-          </div>
+            <h6 class="card-title text-secondary mt-3">Test Set Scores</h5>
 
-					<!-- For adding space between rows -->
-					<div id="space">
-            <h5 class="card-title text-secondary mt-3"></h5>
-						<div class="row">
-							<div class="col-md-1">
-                <span class="badge badge-light" id="space_1"></span>
-              </div>
-            </div>
-          </div>
-
-					<!-- For adding space between rows -->
-					<div id="space">
-            <h5 class="card-title text-secondary mt-3"></h5>
-						<div class="row">
-							<div class="col-md-1">
-                <span class="badge badge-light" id="space_1"></span>
-              </div>
-            </div>
-          </div>
-
-					<div id="test_data_plot">
-            <h5 class="card-title text-secondary mt-3">Test Set Performance</h5>
+					<div id="test_data_plot" style="text-align: center;">
+            
 						<div class="row">
 							<div id="test_scores" style="width: 500px; height: 400px;"></div>
             </div>
           </div>
+
+          					<!-- For adding space between rows -->
+					<div id="space">
+                        <h5 class="card-title text-secondary mt-3"></h5>
+                                    <div class="row">
+                                        <div class="col-md-1">
+                            <span class="badge badge-light" id="space_1"></span>
+                          </div>
+                        </div>
+                      </div>
+                                <!-- For adding space between rows -->
+                                <div id="space">
+                        <h5 class="card-title text-secondary mt-3"></h5>
+                                    <div class="row">
+                                        <div class="col-md-1">
+                            <span class="badge badge-light" id="space_1"></span>
+                          </div>
+                        </div>
+                      </div>
+
+
+            <div id="doc_scores" style="text-align: center;">
+                <!-- <h6 class="card-title text-secondary mt-3">Relevance Score</h5> -->
+                <span class="badge badge-light" style="display: inline-block; font-size: 0.9em;" id="document_score">Loading</span>
+              </div> 
 
         </div>
       </div>
@@ -411,7 +411,7 @@
 						  y: relevantY,
 						  mode: 'markers',
 						  type: 'scatter',
-						  name: 'Rel Docs',
+						  name: 'Rel test docs',
 						  marker: { size: 6, color: 'green' }
 						};
 
@@ -420,7 +420,7 @@
 						  y: notReleventY,
 						  mode: 'markers',
 						  type: 'scatter',
-						  name: 'Non-Rel Docs',
+						  name: 'Non-rel test docs',
 						  marker: { size: 6, color: 'red' }
 						};
 
@@ -433,7 +433,7 @@
 						  y: [11],
 						  mode: 'markers',
 						  type: 'scatter',
-						  name: 'Current Doc',
+						  name: 'Current doc',
 						  marker: { size: 8, color: 'Blue' }
 						};
 
@@ -467,7 +467,7 @@
 						};
 
 						// Plotly.newPlot('test_scores', data, layout, {staticPlot: true});
-						Plotly.newPlot('test_scores', data, layout);         // In case we want to show all document's scores also
+						Plotly.newPlot('test_scores', data, layout, {displayModeBar: false});         // In case we want to show all document's scores also
 
 
 						var relevance_score = parseFloat(obj['score']);
@@ -483,7 +483,7 @@
 							relevance_class = "badge-success";
 						}
 						var final_class = baseclass.concat(relevance_class);
-            $("#document_score").html(relevance_score);
+            $("#document_score").html("Current doc: " + relevance_score);
 						$('#document_score').removeClass();
 		        $('#document_score').addClass(final_class);
 
@@ -531,7 +531,7 @@
 						  }
 						}]
 
-						Plotly.newPlot('model_top_terms', data, {staticPlot: true});
+						Plotly.newPlot('model_top_terms', data, {staticPlot: true}, {displayModeBar: false});
 
             //$("#model_top_terms").text(str1);
             $("#document_date").html(date);
