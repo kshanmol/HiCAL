@@ -68,7 +68,7 @@
 <div class="mb-4">
 
   <div class="row">
-    <div class="col-md-9 mydiv">
+    <div class="col-md-6 mydiv">
       <div class="card border-0">
         <div class="card-block document-cal" id="cal-document"
              data-doc-id="">
@@ -92,13 +92,12 @@
       </div>
     </div>
 
-    <div class="col-md-3 mydiv">
-      <div class="sticky-top card border-0 mr-2 d-none d-sm-block" style="top:73px; z-index: 0;">
+    <div class="col-md-3">
+      <div class="sticky-top card border-0 mr-2 d-none d-sm-block" style="top:20px; z-index: 0;">
         <div class="card-body p-0 mt-3">
           <h5 class="card-title text-secondary">Judge document</h5>
-          <div class="small"><code id="docno_text"></code><code id="document_id"></code></div>
+          <!-- <div class="small"><code id="docno_text"></code><code id="document_id"></code></div> -->
 
-          <div class="text-center">
             <div class="btn-group mt-3" role="group">
               <a href="#" onclick="return send_judgment($('#cal-document').data('doc-id'), $('#document_title').text(), $('#document_snippet').html(), 0, 'click');"
                  class="btn btn-sm btn-outline-secondary d-flex align-items-center">Not relevant</a>
@@ -106,58 +105,49 @@
                  class="btn btn-sm btn-outline-secondary d-flex align-items-center">Relevant</a>
               <!-- <a href="#" onclick="return send_judgment($('#cal-document').data('doc-id'), $('#document_title').text(), $('#document_snippet').html(), 2, 'click');"
                  class="btn btn-sm btn-outline-secondary d-flex align-items-center">Highly relevant</a> -->
-            </div>
           </div>
 
 
-           <div id="keyboard_shortcuts">
-            <h5 class="card-title text-secondary mt-4">Keyboard shortcuts</h5>
-
-            <div class="row">
-              <div class="col-md-1">
-                <span class="badge badge-danger">s</span>
-              </div>
-              <div class="col-md-10">
-                <small class="left-margin">Mark as non-relevant</small>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-1">
-                <span class="badge badge-warning">r</span>
-              </div>
-              <div class="col-md-10">
-                <small class="left-margin">Mark as relevant</small>
-              </div>
-            </div>
-            <!-- <div class="row">
-              <div class="col-md-1">
-                <span class="badge badge-success">h</span>
-              </div>
-              <div class="col-md-10">
-                <small class="left-margin">Mark as highly relevant</small>
-              </div>
-            </div> -->
-            <div class="row">
-              <div class="col-md-1">
-                <span class="badge badge-primary">u</span>
-              </div>
-              <div class="col-md-10">
-                <small class="left-margin">Show previous judgments</small>
-              </div>
-            </div>
-          </div>
-
-          <!-- <div id="highlighted_words">
-            <h5 class="card-title text-secondary mt-4">Highlighted terms <span class="badge badge-secondary">Beta</span></h5>
-            <ul class="list-group" id="highlighted_terms_list">
-            </ul>
-          </div> -->
-          <div id="doc_scores">
-            <h5 class="card-title text-secondary mt-4">Relevance Score</h5>
-            <!-- <div class="small"><code id="document_score"></code></div>
-            </br>
-            <div class="small"><code id="document_top_terms"></code></div> -->
+					<!-- For adding space between rows -->
+					<div id="space">
+            <h5 class="card-title text-secondary mt-3"></h5>
 						<div class="row">
+							<div class="col-md-1">
+                <span class="badge badge-light" id="space_1"></span>
+              </div>
+            </div>
+          </div>
+
+					<!-- For adding space between rows -->
+					<div id="space">
+            <h5 class="card-title text-secondary mt-3"></h5>
+						<div class="row">
+							<div class="col-md-1">
+                <span class="badge badge-light" id="space_1"></span>
+              </div>
+            </div>
+          </div>
+
+
+					<div style="top:100px;" id="top_terms">
+            <h5 class="card-title text-secondary mt-3">Top Terms of Model</h5>
+						<div class="row">
+							<div id="model_top_terms" style="width: 400px; height: 412px;"></div>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+    </div>
+
+		<div class="col-md-3">
+      <div class="sticky-top card border-0 mr-2 d-none d-sm-block" style="top:20px; z-index: 0;">
+        <div class="card-body p-0 mt-3">
+
+          <div id="doc_scores">
+            <h5 class="card-title text-secondary mt-3">Relevance Score</h5>
+            <div class="row">
 							<div class="col-md-1">
                 <span class="badge badge-light" id="document_score">Loading</span>
               </div>
@@ -166,7 +156,17 @@
 
 					<!-- For adding space between rows -->
 					<div id="space">
-            <h5 class="card-title text-secondary mt-4"></h5>
+            <h5 class="card-title text-secondary mt-3"></h5>
+						<div class="row">
+							<div class="col-md-1">
+                <span class="badge badge-light" id="space_1"></span>
+              </div>
+            </div>
+          </div>
+
+					<!-- For adding space between rows -->
+					<div id="space">
+            <h5 class="card-title text-secondary mt-3"></h5>
 						<div class="row">
 							<div class="col-md-1">
                 <span class="badge badge-light" id="space_1"></span>
@@ -175,43 +175,18 @@
           </div>
 
 					<div id="test_data_plot">
-            <h5 class="card-title text-secondary mt-4">Test Set Performance</h5>
+            <h5 class="card-title text-secondary mt-3">Test Set Performance</h5>
 						<div class="row">
 							<div id="test_scores" style="width: 500px; height: 400px;"></div>
-            </div>
-          </div>
-
-
-					<!-- For adding space between rows -->
-					<div id="space">
-            <h5 class="card-title text-secondary mt-4"></h5>
-						<div class="row">
-							<div class="col-md-1">
-                <span class="badge badge-light" id="space_1"></span>
-              </div>
-            </div>
-          </div>
-
-					<!-- For adding space between rows -->
-					<div id="space">
-            <h5 class="card-title text-secondary mt-4"></h5>
-						<div class="row">
-							<div class="col-md-1">
-                <span class="badge badge-light" id="space_1"></span>
-              </div>
-            </div>
-          </div>
-
-					<div id="top_terms">
-            <h5 class="card-title text-secondary mt-1">Top Terms of Model</h5>
-						<div class="row">
-							<div id="model_top_terms" style="width: 400px; height: 600px;"></div>
             </div>
           </div>
 
         </div>
       </div>
     </div>
+
+
+
   </div>
 </div>
 {% endblock %}
@@ -518,7 +493,7 @@
 						var str1 = "";
 						for (var key of Object.keys(top_model_terms)) {
 							model_term = key;
-							term_score = parseFloat(top_model_terms[key]);
+							term_score = parseFloat(top_model_terms[key]).toFixed(2);
 							top_terms.push(model_term);
 							term_scores.push(term_score);
 						}
